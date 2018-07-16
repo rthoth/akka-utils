@@ -3,6 +3,9 @@ package com.github.rthoth.akka.extensions
 import akka.actor.ActorSystem
 import com.typesafe.config.{ Config => Underlying, ConfigException }
 import Configuration._
+import scala.concurrent.duration._
+import java.util.concurrent.TimeUnit
+import java.time.temporal.TemporalUnit
 
 object Configuration {
 
@@ -19,6 +22,10 @@ object Configuration {
   val * : ActorSystem => Configuration = system => {
     new Configuration(system.settings.config)
   }
+  
+  private val ExtractFiniteDuration: (Underlying, String) => FiniteDuration = (underlying, path) => {
+    FiniteDuration(underlying.getDuration(path).toMillis(), TimeUnit.MILLISECONDS)
+  };
 
   private val ExtractInt: (Underlying, String) => Int = (underlying, path) => {
     underlying.getInt(path)
@@ -27,6 +34,7 @@ object Configuration {
   private val ExtractString: (Underlying, String) => String = (underlying, path) => {
     underlying.getString(path)
   }
+ 
 }
 
 class Configuration(underlying: Underlying) {
@@ -47,5 +55,9 @@ class Configuration(underlying: Underlying) {
 
   def getString(path: String)(implicit recover: Recover[String] = null): String = {
     get(path, ExtractString, recover)
+  }
+  
+  def getFiniteDuration(path: String)(implicit recover: Recover[FiniteDuration] = null): FiniteDuration = {
+    get(path, ExtractFiniteDuration, recover)
   }
 }

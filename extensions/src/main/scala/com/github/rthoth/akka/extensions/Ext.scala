@@ -7,6 +7,10 @@ import scala.collection.immutable.HashMap
 
 object Ext extends ExtensionId[Ext] with ExtensionIdProvider {
 
+  def apply[T : Manifest](implicit system: ActorSystem): T = {
+    Ext(system)[T]
+  }
+
   def apply[T: Manifest](creator: ActorSystem => T)(implicit system: ActorSystem): T = {
     Ext(system)(creator)
   }
@@ -35,7 +39,7 @@ class Ext(system: ActorSystem) extends Extension {
       if (values.contains(className)) {
         values(className).asInstanceOf[T]
       } else {
-        throw new IllegalArgumentException(manifest[T].runtimeClass.getName)
+        throw new IllegalArgumentException(className)
       }
     } finally {
       lock.unlock()
@@ -51,6 +55,15 @@ class Ext(system: ActorSystem) extends Extension {
         values += className -> creator(system)
 
       values(className).asInstanceOf[T]
+    } finally {
+      lock.unlock()
+    }
+  }
+
+  def get[T : Manifest]: Option[T] = {
+    lock.lock()
+    try {
+      values.get(manifest[T].runtimeClass.getName).map(_.asInstanceOf[T])
     } finally {
       lock.unlock()
     }

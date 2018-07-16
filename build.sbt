@@ -1,7 +1,8 @@
 val common = Seq(
   organization := "com.github.rthoth",
   scalaVersion in ThisBuild := "2.12.5",
-  isSnapshot := true
+  isSnapshot := true,
+  version := "0.1.0-SNAPSHOT"
 )
 
 
@@ -14,7 +15,12 @@ lazy val extensions = project
     common
   )
 
-lazy val docker = project
+lazy val launcher = project
   .settings(
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" %% "akka-actor" % "2.5.11",
+      "org.backuity.clist" %% "clist-core"   % "3.4.0" % Provided,
+      "org.backuity.clist" %% "clist-macros" % "3.4.0" % Provided,
+    ),
     common
   )

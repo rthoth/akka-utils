@@ -21,17 +21,26 @@ class Workspace(basedir: File, templatePackage: String, cl: ClassLoader) {
     output.close()
   }
 
+  def directory(path: String): File = {
+    val file = realFile(path)
+
+    if (!file.exists())
+      file.mkdirs()
+
+    file
+  }
+
   def file(path: String, template: Boolean = true): File = {
     val file = realFile(path)
 
     if (template && !file.exists()) {
-      val resource = cl.getResourceAsStream(templatePackage.replace('.', '/') + path)
+      val resource = cl.getResourceAsStream(templatePackage.replace('.', '/') + "/" + path)
 
       if (resource ne null) {
         file.getParentFile.mkdirs()
         copy(resource, new FileOutputStream(file))
       } else {
-        throw new FileNotFoundException(cl.getResource(templatePackage.replace('.', '/') + path).toString())
+        throw new FileNotFoundException(s"Resource @ ${templatePackage.replace('.', '/')}/$path")
       }
     }
 
