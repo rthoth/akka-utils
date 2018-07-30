@@ -1,11 +1,12 @@
 package com.github.rthoth.akka.extensions
 
-import akka.actor.ActorSystem
-import com.typesafe.config.{ Config => Underlying, ConfigException }
-import Configuration._
-import scala.concurrent.duration._
 import java.util.concurrent.TimeUnit
-import java.time.temporal.TemporalUnit
+
+import akka.actor.ActorSystem
+import com.github.rthoth.akka.extensions.Configuration._
+import com.typesafe.config.{ConfigException, Config => Underlying}
+
+import scala.concurrent.duration._
 
 object Configuration {
 
@@ -42,6 +43,12 @@ class Configuration(underlying: Underlying) {
   private def get[T](path: String, extractor: (Underlying, String) => T, recover: Recover[T]): T = try {
     extractor(underlying, path)
   } catch {
+    case missing: ConfigException.Missing =>
+      if (recover ne null)
+        recover(missing)
+      else
+        throw new ConfigException.Missing(path, missing)
+
     case reason: ConfigException =>
       if (recover ne null)
         recover(reason)
