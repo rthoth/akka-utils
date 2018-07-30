@@ -60,4 +60,6 @@ class Configuration(underlying: Underlying) {
   def getFiniteDuration(path: String)(implicit recover: Recover[FiniteDuration] = null): FiniteDuration = {
     get(path, ExtractFiniteDuration, recover)
   }
+
+  def has(path: String): Boolean = underlying.hasPath(path)
 }
