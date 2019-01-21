@@ -4,6 +4,9 @@ import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration._
 
+import scala.collection.immutable._
+import scala.collection.JavaConverters._
+
 import Configuration._
 import akka.actor.ActorSystem
 import com.typesafe.config.{Config => Underlying, ConfigException}
@@ -35,6 +38,8 @@ object Configuration {
   private val ExtractLong: Extractor[Long] = _.getLong(_)
 
   private val ExtractString: Extractor[String] = _.getString(_)
+
+  private val ExtractStringList: Extractor[Seq[String]] = _.getStringList(_).asScala.toList
 }
 
 class Configuration(underlying: Underlying) {
@@ -59,6 +64,10 @@ class Configuration(underlying: Underlying) {
 
   def getString(path: String)(implicit recover: Recover[String] = null): String = {
     get(path, ExtractString, recover)
+  }
+
+  def getStringList(path: String)(implicit recover: Recover[Seq[String]] = null): Seq[String] = {
+    get(path, ExtractStringList, recover)
   }
   
   def getFiniteDuration(path: String)(implicit recover: Recover[FiniteDuration] = null): FiniteDuration = {
