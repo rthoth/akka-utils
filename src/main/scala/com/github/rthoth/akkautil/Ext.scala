@@ -8,7 +8,7 @@ import scala.collection.immutable.HashMap
 object Ext extends ExtensionId[Ext] with ExtensionIdProvider {
 
   def apply()(implicit system: ActorSystem): Ext = {
-    Ext(system)
+    super.apply(system)
   }
 
   def createExtension(system: ExtendedActorSystem): Ext = {
