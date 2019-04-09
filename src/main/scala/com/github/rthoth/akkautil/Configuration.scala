@@ -54,7 +54,11 @@ class Configuration(underlying: Underlying) {
         throw reason
   }
 
-  def getDouble(path: String)(implicit recover: Recover[Double]): Double = {
+  def deep(path: String): Configuration = {
+    new Configuration(underlying.getConfig(path))
+  }
+
+  def getDouble(path: String)(implicit recover: Recover[Double] = null): Double = {
     get(path, ExtractDouble, recover)
   }
 
