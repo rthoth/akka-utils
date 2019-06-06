@@ -15,7 +15,7 @@ object Configuration {
 
   type Recover[T] = PartialFunction[ConfigException, T]
 
-  private type Extractor[T] = (Underlying, String) => T
+  private[akkautil] type Extractor[T] = (Underlying, String) => T
 
   object Default {
 
@@ -44,18 +44,18 @@ object Configuration {
 
 class Configuration(underlying: Underlying) {
 
-  private def get[T](path: String, extractor: Extractor[T], recover: Recover[T]): T = try {
+  protected def get[T](path: String, extractor: Extractor[T], recover: Recover[T]): T = try {
     extractor(underlying, path)
   } catch {
     case reason: ConfigException =>
       if (recover ne null)
         recover(reason)
       else
-        throw reason
+        throw new ConfigException.BadPath(path, "", reason)
   }
 
   def deep(path: String): Configuration = {
-    new Configuration(underlying.getConfig(path))
+    new SubConfiguration(path, underlying)
   }
 
   def getDouble(path: String)(implicit recover: Recover[Double] = null): Double = {
@@ -73,7 +73,7 @@ class Configuration(underlying: Underlying) {
   def getStringList(path: String)(implicit recover: Recover[Seq[String]] = null): Seq[String] = {
     get(path, ExtractStringList, recover)
   }
-  
+
   def getFiniteDuration(path: String)(implicit recover: Recover[FiniteDuration] = null): FiniteDuration = {
     get(path, ExtractFiniteDuration, recover)
   }
@@ -83,4 +83,15 @@ class Configuration(underlying: Underlying) {
   }
 
   def has(path: String): Boolean = underlying.hasPath(path)
+}
+
+private class SubConfiguration(base: String, underlying: Underlying) extends Configuration(underlying) {
+
+  override protected def get[T](path: String, extractor: Extractor[T], recover: Recover[T]): T = {
+    super.get(base + "." + path, extractor, recover)
+  }
+
+  override def deep(path: String): Configuration = {
+    super.deep(base + "." + path)
+  }
 }
