@@ -40,6 +40,9 @@ object Configuration {
   private val ExtractString: Extractor[String] = _.getString(_)
 
   private val ExtractStringList: Extractor[Seq[String]] = _.getStringList(_).asScala.toList
+
+  private val ExtractDoubleList: Extractor[Seq[Double]] = _.getDoubleList(_).asScala
+    .map(_.doubleValue()).toList
 }
 
 class Configuration(underlying: Underlying) {
@@ -60,6 +63,10 @@ class Configuration(underlying: Underlying) {
 
   def getDouble(path: String)(implicit recover: Recover[Double] = null): Double = {
     get(path, ExtractDouble, recover)
+  }
+
+  def getDoubleList(path: String)(implicit recover: Recover[Seq[Double]] = null): Seq[Double] = {
+    get(path, ExtractDoubleList, recover)
   }
 
   def getInt(path: String)(implicit recover: Recover[Int] = null): Int = {
